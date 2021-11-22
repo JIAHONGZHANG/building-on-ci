@@ -42,10 +42,17 @@ workflows:
       - build:
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - develop
+                - /rc-.*/
       - publish-latest:
           requires:
             - build
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - develop
+                - /rc-.*/
+                
