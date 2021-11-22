@@ -14,7 +14,18 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            docker build -t $IMAGE_NAME:latest .
+            echo "branch: ${CIRCLE_BRANCH}"
+            echo "tag: ${CIRCLE_TAG}"
+            if [ "${CIRCLE_BRANCH}" == "master" ]
+            then
+                if [ -n "${CIRCLE_TAG}" ]
+                then
+                  docker build -t $IMAGE_NAME:${CIRCLE_TAG} -t $IMAGE_NAME .
+                fi
+            else
+                docker build -t $IMAGE_NAME:${CIRCLE_BRANCH} .
+            fi
+            
       - run:
           name: Archive Docker image
           command: docker save -o image.tar $IMAGE_NAME
@@ -22,7 +33,7 @@ jobs:
           root: .
           paths:
             - ./image.tar
-  publish-latest:
+  publish:
     executor: docker-publisher
     steps:
       - attach_workspace:
@@ -35,17 +46,34 @@ jobs:
           name: Publish Docker Image to Docker Hub
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push $IMAGE_NAME:latest
+            if [ "${CIRCLE_BRANCH}" == "master" ]
+            then
+              if [ -n "${CIRCLE_TAG}" ]
+                then
+                  docker push $IMAGE_NAME:${CIRCLE_TAG}
+                  docker push $IMAGE_NAME:latest
+              fi
+            else
+                docker push $IMAGE_NAME:${CIRCLE_BRANCH}
+            fi
 workflows:
   build-master:
     jobs:
       - build:
           filters:
             branches:
-              only: master
-      - publish-latest:
+              only:
+                - master
+                - develop
+                - /rc-.*/
+      - publish:
           requires:
             - build
           filters:
+            tags:
+              only: /^v.*/
             branches:
-              only: master
+              only:
+                - develop
+                - /rc-.*/
+                
