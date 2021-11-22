@@ -18,7 +18,10 @@ jobs:
             echo "tag: ${CIRCLE_TAG}"
             if [ "${CIRCLE_BRANCH}" == "master" ]
             then
-               docker build -t $IMAGE_NAME:prod .
+                if [ -n "${CIRCLE_TAG}" ]
+                then
+                  docker build -t $IMAGE_NAME:${CIRCLE_TAG} -t $IMAGE_NAME .
+                fi
             else
                 docker build -t $IMAGE_NAME:${CIRCLE_BRANCH} .
             fi
@@ -45,9 +48,13 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             if [ "${CIRCLE_BRANCH}" == "master" ]
             then
-               docker push $IMAGE_NAME:prod
+              if [ -n "${CIRCLE_TAG}" ]
+                then
+                  docker push $IMAGE_NAME:${CIRCLE_TAG}
+                  docker push $IMAGE_NAME:latest
+              fi
             else
-               docker push $IMAGE_NAME:${CIRCLE_BRANCH}
+                docker push $IMAGE_NAME:${CIRCLE_BRANCH}
             fi
 workflows:
   build-master:
