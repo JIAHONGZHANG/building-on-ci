@@ -14,7 +14,10 @@ jobs:
       - run:
           name: Build Docker image
           command: |
+            echo "branch: ${CIRCLE_BRANCH}"
+            echo "tag: ${CIRCLE_TAG}"
             docker build -t $IMAGE_NAME:latest .
+            
       - run:
           name: Archive Docker image
           command: docker save -o image.tar $IMAGE_NAME
@@ -22,7 +25,7 @@ jobs:
           root: .
           paths:
             - ./image.tar
-  publish-latest:
+  publish:
     executor: docker-publisher
     steps:
       - attach_workspace:
@@ -46,13 +49,14 @@ workflows:
                 - master
                 - develop
                 - /rc-.*/
-      - publish-latest:
+      - publish:
           requires:
             - build
           filters:
+            tags:
+              only: /^v.*/
             branches:
               only:
-                - master
                 - develop
                 - /rc-.*/
                 
