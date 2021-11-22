@@ -16,7 +16,12 @@ jobs:
           command: |
             echo "branch: ${CIRCLE_BRANCH}"
             echo "tag: ${CIRCLE_TAG}"
-            docker build -t $IMAGE_NAME:latest .
+            if [ "${CIRCLE_BRANCH}" == "master" ]
+            then
+               docker build -t $IMAGE_NAME:prod .
+            else
+                docker build -t $IMAGE_NAME:${CIRCLE_BRANCH} .
+            fi
             
       - run:
           name: Archive Docker image
@@ -38,7 +43,12 @@ jobs:
           name: Publish Docker Image to Docker Hub
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push $IMAGE_NAME:latest
+            if [ "${CIRCLE_BRANCH}" == "master" ]
+            then
+               docker push $IMAGE_NAME:prod .
+            else
+                docker push $IMAGE_NAME:${CIRCLE_BRANCH} .
+            fi
 workflows:
   build-master:
     jobs:
