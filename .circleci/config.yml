@@ -21,6 +21,8 @@ jobs:
                 if [ -n "${CIRCLE_TAG}" ]
                 then
                   docker build -t $IMAGE_NAME:${CIRCLE_TAG} -t $IMAGE_NAME .
+                else
+                  docker build -t $IMAGE_NAME .
                 fi
             else
                 docker build -t $IMAGE_NAME:${CIRCLE_BRANCH} .
