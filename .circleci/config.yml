@@ -33,7 +33,6 @@ jobs:
   publish:
     executor: docker-publisher
     steps:
-      - checkout
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
@@ -46,9 +45,9 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             if [ "${CIRCLE_BRANCH}" == "master" ]
             then
-               docker push $IMAGE_NAME:prod .
+               docker push $IMAGE_NAME:prod
             else
-              docker push $IMAGE_NAME:${CIRCLE_BRANCH} .
+               docker push $IMAGE_NAME:${CIRCLE_BRANCH}
             fi
 workflows:
   build-master:
